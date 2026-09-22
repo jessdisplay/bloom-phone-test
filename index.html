@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Bloom phone test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
+<style>
+  html { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  :root {
+    --ground: #f7f1e6;
+    --ink: #2b2118;
+    --muted: #75685a;
+    --line: #e2d7c5;
+    --card: #fffaf2;
+    --good: #2f7a4b;
+    --bad: #b3412e;
+    --accent: #8a5a34;
+  }
+  body { background: var(--ground); color: var(--ink); font: 15px/1.5 "DM Sans", system-ui, -apple-system, sans-serif; padding-inline: 16px; padding-block: 20px 48px; }
+  main { max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 62ch; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .clip { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: grid; }
+  .stage { position: relative; aspect-ratio: 9 / 14; max-width: 100%; background: repeating-conic-gradient(#d9cdb9 0 25%, #eee4d3 0 50%) 0 0 / 24px 24px; }
+  .stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+  .meta { padding: 12px 14px 14px; display: grid; gap: 8px; }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .name { font-weight: 600; }
+  .size { color: var(--muted); font-size: 13px; }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  dt { color: var(--muted); }
+  dd { margin: 0; text-align: right; }
+  .verdict { font-weight: 600; font-size: 14px; }
+  .verdict.ok { color: var(--good); }
+  .verdict.no { color: var(--bad); }
+  button { font: inherit; font-weight: 600; color: var(--card); background: var(--accent); border: 0; border-radius: 999px; padding: 10px 20px; cursor: pointer; justify-self: start; }
+  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .note { font-size: 13px; }
+</style>
+
+</head>
+<body>
+<main>
+  <h1>Does the flower show on this phone?</h1>
+  <p>Both clips are opened the same way the riseos.care header opens the flower: jumped forward frame by frame, not played. Checkerboard means the video painted nothing. Tap Replay to run both again.</p>
+  <button id="replay" type="button">Replay both</button>
+  <div class="grid">
+    <section class="clip" id="c-old">
+      <div class="stage"><video muted playsinline preload="auto"></video></div>
+      <div class="meta">
+        <div class="head"><span class="name">A · Live phone file</span><span class="size">0.36 MB</span></div>
+        <dl><dt>Frames painted</dt><dd class="f">0</dd><dt>Reached</dt><dd class="t">0.00s / 5.92s</dd><dt>Avg jump</dt><dd class="s">–</dd></dl>
+        <div class="verdict">Waiting…</div>
+      </div>
+    </section>
+    <section class="clip" id="c-new">
+      <div class="stage"><video muted playsinline preload="auto"></video></div>
+      <div class="meta">
+        <div class="head"><span class="name">B · Proposed phone file</span><span class="size">2.2 MB</span></div>
+        <dl><dt>Frames painted</dt><dd class="f">0</dd><dt>Reached</dt><dd class="t">0.00s / 5.92s</dd><dt>Avg jump</dt><dd class="s">–</dd></dl>
+        <div class="verdict">Waiting…</div>
+      </div>
+    </section>
+  </div>
+  <p class="note" id="ua"></p>
+</main>
+
+<script>
+const DATA = { old: "a-live-720.mp4", new: "b-intra-720.mp4" }
+const SPEED = 1.5, HOLD = 380, EASE = 0.16
+
+function rig(id, url) {
+  const card = document.getElementById(id), vid = card.querySelector("video")
+  const out = { f: card.querySelector(".f"), t: card.querySelector(".t"), s: card.querySelector(".s"), v: card.querySelector(".verdict") }
+  let painted = 0, run = 0, seeks = 0, seekMs = 0, seekAt = 0
+  vid.addEventListener("seeking", () => { seekAt = performance.now() })
+  vid.addEventListener("seeked", () => { if (seekAt) { seeks++; seekMs += performance.now() - seekAt; seekAt = 0 } })
+  const countFrames = () => { painted++; out.f.textContent = painted; vid.requestVideoFrameCallback(countFrames) }
+  if ("requestVideoFrameCallback" in vid) vid.requestVideoFrameCallback(countFrames)
+  else out.f.textContent = "n/a"
+  vid.src = url
+
+  const start = () => {
+    const my = ++run
+    painted = 0; seeks = 0; seekMs = 0; out.v.textContent = "Opening…"; out.v.className = "verdict"
+    const go = () => {
+      vid.currentTime = 0
+      const end = vid.duration - 0.05, span = end * 1000 / SPEED, t0 = performance.now() + HOLD
+      let target = 0
+      const step = () => {
+        if (my !== run) return
+        const p = Math.min(Math.max((performance.now() - t0) / span, 0), 1)
+        target = p * end
+        const d = target - vid.currentTime
+        if (!vid.seeking && Math.abs(d) >= 0.01) vid.currentTime = vid.currentTime + d * EASE
+        out.t.textContent = vid.currentTime.toFixed(2) + "s / " + vid.duration.toFixed(2) + "s"
+        out.s.textContent = seeks ? Math.round(seekMs / seeks) + " ms" : "–"
+        if (p < 1 || Math.abs(target - vid.currentTime) >= 0.01) setTimeout(step, 16)
+        else if (vid.seeking) vid.addEventListener("seeked", finish, { once: true })
+        else finish()
+      }
+      setTimeout(step, 16)
+    }
+    const finish = () => {
+      const avg = seeks ? seekMs / seeks : 0
+      const ok = vid.readyState >= 2 && painted > 20 && avg < 120
+      out.v.textContent = ok ? "Flower shown" : "Missing or stuttering"
+      out.v.className = "verdict " + (ok ? "ok" : "no")
+    }
+    if (Number.isFinite(vid.duration)) go()
+    else vid.addEventListener("loadedmetadata", go, { once: true })
+  }
+  return start
+}
+
+const runs = [rig("c-old", DATA.old), rig("c-new", DATA.new)]
+const all = () => runs.forEach((r) => r())
+document.getElementById("replay").addEventListener("click", all)
+document.getElementById("ua").textContent = "Browser: " + navigator.userAgent
+all()
+</script>
+</body>
+</html>
