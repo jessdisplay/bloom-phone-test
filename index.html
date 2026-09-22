@@ -10,7 +10,6 @@
 <style>
   html { color-scheme: light; }
   * { box-sizing: border-box; }
-  body { margin: 0; }
   :root {
     --ground: #f7f1e6;
     --ink: #2b2118;
@@ -21,108 +20,150 @@
     --bad: #b3412e;
     --accent: #8a5a34;
   }
-  body { background: var(--ground); color: var(--ink); font: 15px/1.5 "DM Sans", system-ui, -apple-system, sans-serif; padding-inline: 16px; padding-block: 20px 48px; }
-  main { max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.5 "DM Sans", system-ui, -apple-system, sans-serif; padding-inline: 16px; padding-block: 20px 48px; }
+  main { max-width: 860px; margin: 0 auto; display: grid; gap: 18px; }
   h1 { font-size: 22px; font-weight: 600; margin: 0; text-wrap: balance; }
   p { margin: 0; max-width: 62ch; color: var(--muted); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-  .clip { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: grid; }
-  .stage { position: relative; aspect-ratio: 9 / 14; max-width: 100%; background: repeating-conic-gradient(#d9cdb9 0 25%, #eee4d3 0 50%) 0 0 / 24px 24px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; }
+  button { font: inherit; font-weight: 600; color: var(--card); background: var(--accent); border: 0; border-radius: 999px; padding: 10px 20px; cursor: pointer; }
+  button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (min-width: 640px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+  .clip { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: grid; align-content: start; }
+  .stage { position: relative; aspect-ratio: 3 / 4; background: repeating-conic-gradient(#d9cdb9 0 25%, #eee4d3 0 50%) 0 0 / 20px 20px; }
   .stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
-  .meta { padding: 12px 14px 14px; display: grid; gap: 8px; }
-  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .name { font-weight: 600; }
-  .size { color: var(--muted); font-size: 13px; }
-  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .meta { padding: 10px 12px 12px; display: grid; gap: 6px; }
+  .name { font-weight: 600; font-size: 14px; }
+  .how { color: var(--muted); font-size: 12px; }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 1px 8px; font-size: 12px; font-variant-numeric: tabular-nums; }
   dt { color: var(--muted); }
   dd { margin: 0; text-align: right; }
-  .verdict { font-weight: 600; font-size: 14px; }
+  .verdict { font-weight: 600; font-size: 13px; }
   .verdict.ok { color: var(--good); }
   .verdict.no { color: var(--bad); }
-  button { font: inherit; font-weight: 600; color: var(--card); background: var(--accent); border: 0; border-radius: 999px; padding: 10px 20px; cursor: pointer; justify-self: start; }
-  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
-  .note { font-size: 13px; }
+  .note { font-size: 12px; color: var(--muted); word-break: break-word; }
+  .ask { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .ask strong { font-weight: 600; }
 </style>
-
 </head>
 <body>
 <main>
   <h1>Does the flower show on this phone?</h1>
-  <p>Both clips are opened the same way the riseos.care header opens the flower: jumped forward frame by frame, not played. Checkerboard means the video painted nothing. Tap Replay to run both again.</p>
-  <button id="replay" type="button">Replay both</button>
+  <p>Four copies of the same flower. Two are jumped through frame by frame, which is how the riseos.care header opens it today. Two are simply played. Checkerboard means nothing was drawn.</p>
+  <div class="bar">
+    <button id="replay" type="button">Replay all</button>
+    <button id="tap" class="ghost" type="button">Start with a tap</button>
+  </div>
   <div class="grid">
-    <section class="clip" id="c-old">
-      <div class="stage"><video muted playsinline preload="auto"></video></div>
+    <section class="clip" id="c1">
+      <div class="stage"><video muted playsinline preload="auto" src="a-live-720.mp4"></video></div>
       <div class="meta">
-        <div class="head"><span class="name">A · Live phone file</span><span class="size">0.36 MB</span></div>
-        <dl><dt>Frames painted</dt><dd class="f">0</dd><dt>Reached</dt><dd class="t">0.00s / 5.92s</dd><dt>Avg jump</dt><dd class="s">–</dd></dl>
+        <div class="name">A · jumped</div>
+        <div class="how">live file, 0.36 MB</div>
+        <dl><dt>Painted</dt><dd class="f">0</dd><dt>Reached</dt><dd class="t">0.00s</dd><dt>State</dt><dd class="r">–</dd></dl>
         <div class="verdict">Waiting…</div>
       </div>
     </section>
-    <section class="clip" id="c-new">
-      <div class="stage"><video muted playsinline preload="auto"></video></div>
+    <section class="clip" id="c2">
+      <div class="stage"><video muted playsinline preload="auto" src="b-intra-720.mp4"></video></div>
       <div class="meta">
-        <div class="head"><span class="name">B · Proposed phone file</span><span class="size">2.2 MB</span></div>
-        <dl><dt>Frames painted</dt><dd class="f">0</dd><dt>Reached</dt><dd class="t">0.00s / 5.92s</dd><dt>Avg jump</dt><dd class="s">–</dd></dl>
+        <div class="name">B · jumped</div>
+        <div class="how">rebuilt file, 2.2 MB</div>
+        <dl><dt>Painted</dt><dd class="f">0</dd><dt>Reached</dt><dd class="t">0.00s</dd><dt>State</dt><dd class="r">–</dd></dl>
+        <div class="verdict">Waiting…</div>
+      </div>
+    </section>
+    <section class="clip" id="c3">
+      <div class="stage"><video muted playsinline preload="auto" src="a-live-720.mp4"></video></div>
+      <div class="meta">
+        <div class="name">C · played</div>
+        <div class="how">live file, 1.5x</div>
+        <dl><dt>Painted</dt><dd class="f">0</dd><dt>Reached</dt><dd class="t">0.00s</dd><dt>State</dt><dd class="r">–</dd></dl>
+        <div class="verdict">Waiting…</div>
+      </div>
+    </section>
+    <section class="clip" id="c4">
+      <div class="stage"><video muted playsinline preload="auto" src="b-intra-720.mp4"></video></div>
+      <div class="meta">
+        <div class="name">D · played</div>
+        <div class="how">rebuilt file, 1.5x</div>
+        <dl><dt>Painted</dt><dd class="f">0</dd><dt>Reached</dt><dd class="t">0.00s</dd><dt>State</dt><dd class="r">–</dd></dl>
         <div class="verdict">Waiting…</div>
       </div>
     </section>
   </div>
-  <p class="note" id="ua"></p>
+  <div class="ask">
+    <strong>If everything is checkerboard:</strong> check whether Low Power Mode is on (the battery icon is yellow). It stops video from starting on its own. Turn it off, reload, and see if that changes anything.
+  </div>
+  <p class="note" id="diag">Reading browser…</p>
 </main>
 
 <script>
-const DATA = { old: "a-live-720.mp4", new: "b-intra-720.mp4" }
 const SPEED = 1.5, HOLD = 380, EASE = 0.16
 
-function rig(id, url) {
+function rig(id, mode) {
   const card = document.getElementById(id), vid = card.querySelector("video")
-  const out = { f: card.querySelector(".f"), t: card.querySelector(".t"), s: card.querySelector(".s"), v: card.querySelector(".verdict") }
-  let painted = 0, run = 0, seeks = 0, seekMs = 0, seekAt = 0
-  vid.addEventListener("seeking", () => { seekAt = performance.now() })
-  vid.addEventListener("seeked", () => { if (seekAt) { seeks++; seekMs += performance.now() - seekAt; seekAt = 0 } })
-  const countFrames = () => { painted++; out.f.textContent = painted; vid.requestVideoFrameCallback(countFrames) }
-  if ("requestVideoFrameCallback" in vid) vid.requestVideoFrameCallback(countFrames)
+  const out = {
+    f: card.querySelector(".f"), t: card.querySelector(".t"),
+    r: card.querySelector(".r"), v: card.querySelector(".verdict"),
+  }
+  let painted = 0, run = 0
+  const tick = () => { painted++; out.f.textContent = painted; vid.requestVideoFrameCallback(tick) }
+  if ("requestVideoFrameCallback" in vid) vid.requestVideoFrameCallback(tick)
   else out.f.textContent = "n/a"
-  vid.src = url
+
+  const report = (msg, ok) => {
+    out.v.textContent = msg
+    out.v.className = "verdict " + (ok === true ? "ok" : ok === false ? "no" : "")
+  }
+  const watch = setInterval(() => {
+    out.t.textContent = (Number.isFinite(vid.currentTime) ? vid.currentTime.toFixed(2) : "–") + "s"
+    out.r.textContent = "rs" + vid.readyState + (vid.error ? " err" + vid.error.code : "") + (vid.paused ? "" : " playing")
+  }, 250)
+  void watch
+
+  const jumped = () => {
+    const my = run
+    const end = vid.duration - 0.05, span = end * 1000 / SPEED, t0 = performance.now() + HOLD
+    const step = () => {
+      if (my !== run) return
+      const p = Math.min(Math.max((performance.now() - t0) / span, 0), 1)
+      const d = p * end - vid.currentTime
+      if (!vid.seeking && Math.abs(d) >= 0.01) vid.currentTime = vid.currentTime + d * EASE
+      if (p < 1) setTimeout(step, 16)
+      else report(painted > 20 ? "Flower shown" : "Nothing drawn", painted > 20)
+    }
+    setTimeout(step, 16)
+  }
+
+  const played = () => {
+    vid.playbackRate = SPEED
+    vid.currentTime = 0
+    const p = vid.play()
+    if (p && p.catch) p.catch((e) => report("Blocked: " + e.name, false))
+    vid.addEventListener("ended", () => report(painted > 20 ? "Flower shown" : "Nothing drawn", painted > 20), { once: true })
+  }
 
   const start = () => {
-    const my = ++run
-    painted = 0; seeks = 0; seekMs = 0; out.v.textContent = "Opening…"; out.v.className = "verdict"
-    const go = () => {
-      vid.currentTime = 0
-      const end = vid.duration - 0.05, span = end * 1000 / SPEED, t0 = performance.now() + HOLD
-      let target = 0
-      const step = () => {
-        if (my !== run) return
-        const p = Math.min(Math.max((performance.now() - t0) / span, 0), 1)
-        target = p * end
-        const d = target - vid.currentTime
-        if (!vid.seeking && Math.abs(d) >= 0.01) vid.currentTime = vid.currentTime + d * EASE
-        out.t.textContent = vid.currentTime.toFixed(2) + "s / " + vid.duration.toFixed(2) + "s"
-        out.s.textContent = seeks ? Math.round(seekMs / seeks) + " ms" : "–"
-        if (p < 1 || Math.abs(target - vid.currentTime) >= 0.01) setTimeout(step, 16)
-        else if (vid.seeking) vid.addEventListener("seeked", finish, { once: true })
-        else finish()
-      }
-      setTimeout(step, 16)
+    run++
+    painted = 0
+    report("Opening…")
+    const go = () => (mode === "jump" ? jumped() : played())
+    if (Number.isFinite(vid.duration) && vid.duration > 0) go()
+    else {
+      vid.addEventListener("loadedmetadata", go, { once: true })
+      vid.load() // only when metadata never arrived; load() during playback aborts it
     }
-    const finish = () => {
-      const avg = seeks ? seekMs / seeks : 0
-      const ok = vid.readyState >= 2 && painted > 20 && avg < 120
-      out.v.textContent = ok ? "Flower shown" : "Missing or stuttering"
-      out.v.className = "verdict " + (ok ? "ok" : "no")
-    }
-    if (Number.isFinite(vid.duration)) go()
-    else vid.addEventListener("loadedmetadata", go, { once: true })
   }
   return start
 }
 
-const runs = [rig("c-old", DATA.old), rig("c-new", DATA.new)]
+const runs = [rig("c1", "jump"), rig("c2", "jump"), rig("c3", "play"), rig("c4", "play")]
 const all = () => runs.forEach((r) => r())
 document.getElementById("replay").addEventListener("click", all)
-document.getElementById("ua").textContent = "Browser: " + navigator.userAgent
+document.getElementById("tap").addEventListener("click", all)
+document.getElementById("diag").textContent = "Browser: " + navigator.userAgent + " · screen " + window.innerWidth + "x" + window.innerHeight
 all()
 </script>
 </body>
